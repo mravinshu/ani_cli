@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Episode {{ ep_number }} - Providers</title>
+</head>
+<body>
+  <h1>Episode {{ ep_number }} - Streaming Sources</h1>
+
+  {% for provider, links in providers.items() %}
+    {% if links %}
+      <h2>{{ provider.capitalize() }}</h2>
+      <ul>
+        {% for link in links %}
+          <li><a href="{{ link.url }}" target="_blank">{{ link.label }}</a></li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endfor %}
+
+  <a href="/">Back to Search</a>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playing {{ anime_title }} Episode {{ episode_number }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1, h2 { color: #0056b3; }
+        form { margin-bottom: 20px; }
+        input[type="text"] { width: 70%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .results-list { list-style: none; padding: 0; }
+        .results-list li { background: #e9e9e9; margin-bottom: 10px; padding: 10px; border-radius: 4px; }
+        .results-list li a { text-decoration: none; color: #007bff; font-weight: bold; }
+        .results-list li a:hover { text-decoration: underline; }
+        .error { color: red; font-weight: bold; }
+        .download-link { margin-top: 20px; padding: 10px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; color: #155724; }
+        .command-box { background-color: #eee; padding: 15px; border-radius: 5px; font-family: monospace; white-space: pre-wrap; word-break: break-all; margin-top: 15px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ anime_title }} - Episode {{ episode_number }}</h1>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% elif video_url %}
+            <h2>Options for Playing/Downloading:</h2>
+            <p>
+                <strong>Direct Video URL:</strong> <a href="{{ video_url }}" target="_blank">{{ video_url }}</a>
+            </p>
+            <p class="download-link">
+                You can try opening the link in your browser directly. Some browsers might play it if it's a simple MP4.
+                For more robust playback, use a dedicated media player.
+            </p>
+
+            {% if player_command %}
+                <h3>Play using a local player (e.g., MPV/VLC):</h3>
+                <p>Copy and paste this command into your terminal:</p>
+                <div class="command-box">
+                    <code>{{ player_command }}</code>
+                </div>
+                <p>
+                    Ensure you have the specified player (e.g., `mpv`, `vlc`) installed and in your system's PATH.
+                </p>
+            {% endif %}
+
+        {% else %}
+            <p class="error">An unexpected error occurred or no direct video link could be found.</p>
+        {% endif %}
+
+        <p>
+            <a href="{{ url_for('anime_details', anime_id=request.args.get('anime_id'), anime_title=request.args.get('anime_title')) }}">Back to Episode List</a>
+        </p>
+    </div>
+</body>
+</html>

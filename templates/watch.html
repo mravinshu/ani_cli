@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head><title>Episodes - {{ title }}</title></head>
+<body>
+  <h1>Episodes for {{ title }}</h1>
+  <ul>
+    {% for ep in episodes %}
+      <li><a href="{{ ep.link }}">Episode {{ ep.ep_num }}</a></li>
+    {% endfor %}
+  </ul>
+</body>
+</html>
