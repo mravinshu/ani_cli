@@ -187,7 +187,6 @@ def episode_stream(anime_id, ep_number):
         if raw_url.startswith('--'):
             cleaned_url = raw_url[2:]  # remove leading '--'
             cleaned_url = substitute_hex(cleaned_url)
-            print(cleaned_url)
         else:
             cleaned_url = raw_url
 
@@ -245,7 +244,6 @@ def play_episode_online(anime_id, ep_number):
             cleaned_url = raw_url[2:]  # remove leading '--'
             cleaned_url = substitute_hex(cleaned_url)
             if "apivtwo" in cleaned_url:
-                print(cleaned_url)
                 res = requests.get(cleaned_url, headers=HEADERS)
                 res = res.json()
                 links = res.get("links", [])
@@ -262,4 +260,4 @@ def play_episode_online(anime_id, ep_number):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=10000)
