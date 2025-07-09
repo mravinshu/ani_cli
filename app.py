@@ -1,5 +1,6 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 import requests
+import urllib.parse
 
 app = Flask(__name__)
 
@@ -233,18 +234,20 @@ def play_episode_online(anime_id, ep_number):
 
     data = response.json()
     sources = data.get("data", {}).get("episode", {}).get("sourceUrls", [])
+    usable_urls = []
+
     for src in sources:
-        source_name = src.get("sourceName")
         raw_url = src.get("sourceUrl")
 
-        usable_urls = []
-
-        # Clean up obfuscated sourceUrl if it starts with '--'
         if raw_url.startswith('--'):
             cleaned_url = raw_url[2:]  # remove leading '--'
             cleaned_url = substitute_hex(cleaned_url)
             if "apivtwo" in cleaned_url:
-                res = requests.get(cleaned_url, headers=HEADERS)
+                try:
+                    res = requests.get(cleaned_url, headers=HEADERS)
+                    res.raise_for_status()
+                except requests.RequestException:
+                    continue
                 res = res.json()
                 links = res.get("links", [])
                 for link in links:
@@ -253,9 +256,18 @@ def play_episode_online(anime_id, ep_number):
     if not usable_urls:
         return "No usable stream URLs found."
 
-    # Select the first usable URL as the video source
-    selected_source = usable_urls[-1]
-
+    # If only one .m3u8 URL, redirect to external player
+    non_m3u8_url = False
+    if len(usable_urls) > 0:
+        for _url in usable_urls:
+            if not _url.endswith('.m3u8'):
+                selected_source = _url
+                non_m3u8_url = True
+                break
+    if not non_m3u8_url:
+        encoded_url = urllib.parse.quote(usable_urls[0], safe='')
+        redirect_url = f"https://allanime.day/player?url={encoded_url}"
+        return redirect(redirect_url)
     return render_template("video_player.html", video_url=selected_source, episode_number=ep_number)
 
 
