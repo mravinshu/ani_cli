@@ -133,7 +133,7 @@
     </style>
 </head>
 <body>
-    <h1>Now Playing</h1>
+    <h1 id="nowPlayingTitle">Now Playing</h1>
     <div class="video-container">
         <video src="{{ video_url }}" controls autoplay>
             Your browser does not support the video tag.
@@ -145,8 +145,52 @@
     </div>
     <a href="javascript:history.back()" class="back-button">Go Back</a>
 
-
     <script>
+    // Extract anime ID and episode number from URL
+    const urlParts = window.location.pathname.split('/');
+    const animeId = urlParts[2]; // "yquCdfW4DjcS533oR"
+    const episodeNumber = parseInt(urlParts[4], 10);
+
+    // You can optionally convert the animeId to a more readable name
+    // For now, we'll just use it as-is
+    const readableAnimeName = animeId; // Later: replace dashes/underscores if needed
+
+    // Update the <h1> title
+    const titleElement = document.getElementById('nowPlayingTitle');
+    titleElement.textContent = `Now Playing: Episode ${episodeNumber}`;
+
+    const videoElement = document.querySelector("video");
+
+    // Extract anime ID and episode number from URL
+    const urlParts = window.location.pathname.split('/');
+    const animeId = urlParts[2]; // e.g., yquCdfW4DjcS533oR
+    const episodeNumber = parseInt(urlParts[4], 10); // e.g., 111
+
+    const storageKey = `anime-progress-${animeId}`;
+
+    // Save progress every second
+    videoElement.addEventListener("timeupdate", function () {
+        const currentTime = Math.floor(videoElement.currentTime);
+
+        const data = {
+            episode: episodeNumber,
+            time: currentTime,
+            updatedAt: Date.now()
+        };
+
+        localStorage.setItem(storageKey, JSON.stringify(data));
+    });
+
+    // Optional: Resume from last time
+    window.addEventListener("load", function () {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+            const { episode, time } = JSON.parse(saved);
+            if (episode === episodeNumber) {
+                videoElement.currentTime = time;
+            }
+        }
+    });
         document.getElementById('nextEpisodeBtn').addEventListener('click', function() {
             navigateToEpisode(1); // Navigate to next episode
         });
@@ -158,7 +202,7 @@
         function navigateToEpisode(direction) {
             const currentUrl = window.location.href;
             // The regex now specifically targets the structure used in the Flask app
-            const baseUrlPattern = /(http:\/\/localhost:5000\/anime\/[a-zA-Z0-9]+\/episode\/)(\d+)(\/play)/;
+            const baseUrlPattern = /(https?:\/\/[^\/]+\/anime\/[a-zA-Z0-9]+\/episode\/)(\d+)(\/play)/;
             const match = currentUrl.match(baseUrlPattern);
 
             if (match) {
