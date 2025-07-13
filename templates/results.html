@@ -176,11 +176,59 @@
           <img src="{{ show.poster }}" alt="{{ show.name }}">
           <h3>{{ show.name }}</h3>
         </a>
-        <p>Episodes: {{ show.availableEpisodes or 0 }}</p>
+<div style="margin-top: 8px; font-size: 0.9em; color: #ccc;">
+  {% if show.availableEpisodes.sub > 0 %}
+    <div>Sub: {{ show.availableEpisodes.sub }}</div>
+  {% endif %}
+  {% if show.availableEpisodes.dub > 0 %}
+    <div>Dub: {{ show.availableEpisodes.dub }}</div>
+  {% endif %}
+  {% if show.availableEpisodes.raw > 0 %}
+    <div>Raw: {{ show.availableEpisodes.raw }}</div>
+  {% endif %}
+</div>
+        <div class="resume-button-placeholder" data-anime-id="{{ show._id }}"></div>
       </div>
     {% endfor %}
   </div>
   <br>
   <a href="/" class="search-again-link">Search Again</a>
+<script>
+  // Find all placeholder divs
+  const resumePlaceholders = document.querySelectorAll('.resume-button-placeholder');
+
+  resumePlaceholders.forEach(placeholder => {
+    const animeId = placeholder.getAttribute('data-anime-id');
+    const storageKey = `anime-progress-${animeId}`;
+    const saved = localStorage.getItem(storageKey);
+
+    if (saved) {
+      const { episode } = JSON.parse(saved);
+      const resumeBtn = document.createElement('a');
+      resumeBtn.href = `/anime/${animeId}/episode/${episode}/play`;
+      resumeBtn.textContent = `▶ Resume Episode ${episode}`;
+      resumeBtn.style.display = 'inline-block';
+      resumeBtn.style.marginTop = '10px';
+      resumeBtn.style.padding = '8px 16px';
+      resumeBtn.style.backgroundColor = '#228b22';
+      resumeBtn.style.color = 'white';
+      resumeBtn.style.textDecoration = 'none';
+      resumeBtn.style.borderRadius = '5px';
+      resumeBtn.style.fontWeight = 'bold';
+      resumeBtn.style.transition = 'background-color 0.3s ease';
+
+      resumeBtn.addEventListener('mouseover', () => {
+        resumeBtn.style.backgroundColor = '#1e7c1e';
+      });
+
+      resumeBtn.addEventListener('mouseout', () => {
+        resumeBtn.style.backgroundColor = '#228b22';
+      });
+
+      placeholder.appendChild(resumeBtn);
+    }
+  });
+</script>
+
 </body>
 </html>
