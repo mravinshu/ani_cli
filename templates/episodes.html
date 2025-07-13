@@ -119,11 +119,31 @@
 </head>
 <body>
   <h1>Episodes for "{{ name }}"</h1>
+    <div id="resume-container" style="margin-bottom: 25px;"></div>
   <div class="grid">
     {% for ep in episodes %}
       <a href="/anime/{{ anime_id }}/episode/{{ ep }}/play">Episode {{ ep }}</a>
     {% endfor %}
   </div>
   <a href="/" class="search-again-link">Search Again</a>
+<script>
+    const animeId = "{{ anime_id }}";
+    const storageKey = `anime-progress-${animeId}`;
+    const resumeContainer = document.getElementById("resume-container");
+
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      const { episode, time } = JSON.parse(saved);
+      const resumeBtn = document.createElement("a");
+
+      resumeBtn.href = `/anime/${animeId}/episode/${episode}/play`;
+      resumeBtn.textContent = `▶ Resume Episode ${episode}`;
+      resumeBtn.className = "search-again-link";
+      resumeBtn.style.backgroundColor = "#228b22"; // Optional: green to stand out
+      resumeBtn.style.marginBottom = "15px";
+
+      resumeContainer.appendChild(resumeBtn);
+    }
+  </script>
 </body>
 </html>
