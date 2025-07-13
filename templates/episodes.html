@@ -127,11 +127,13 @@
   </div>
   <a href="/" class="search-again-link">Search Again</a>
 <script>
+  console.log("Loading resume functionality...");
     const animeId = "{{ anime_id }}";
     const storageKey = `anime-progress-${animeId}`;
     const resumeContainer = document.getElementById("resume-container");
 
     const saved = localStorage.getItem(storageKey);
+    console.log("Saved progress:", saved);
     if (saved) {
       const { episode, time } = JSON.parse(saved);
       const resumeBtn = document.createElement("a");

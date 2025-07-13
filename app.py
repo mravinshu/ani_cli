@@ -268,7 +268,7 @@ def play_episode_online(anime_id, ep_number):
         encoded_url = urllib.parse.quote(usable_urls[0], safe='')
         redirect_url = f"https://allanime.day/player?url={encoded_url}"
         return redirect(redirect_url)
-    return render_template("video_player.html", video_url=selected_source, episode_number=ep_number)
+    return render_template("video_player.html", video_url=selected_source, episode_number=ep_number, player_title= f"Episode {ep_number}")
 
 
 if __name__ == '__main__':

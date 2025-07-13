@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Playing - {{ video_url.split('/')[-3] }} Episode {{ video_url.split('/')[-2] }}</title>
+    <title>Playing - {{ player_title }}</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -146,26 +146,23 @@
     <a href="javascript:history.back()" class="back-button">Go Back</a>
 
     <script>
-    // Extract anime ID and episode number from URL
-    const urlParts = window.location.pathname.split('/');
-    const animeId = urlParts[2]; // "yquCdfW4DjcS533oR"
-    const episodeNumber = parseInt(urlParts[4], 10);
-
-    // You can optionally convert the animeId to a more readable name
-    // For now, we'll just use it as-is
-    const readableAnimeName = animeId; // Later: replace dashes/underscores if needed
-
-    // Update the <h1> title
-    const titleElement = document.getElementById('nowPlayingTitle');
-    titleElement.textContent = `Now Playing: Episode ${episodeNumber}`;
-
-    const videoElement = document.querySelector("video");
+        console.log(document.querySelector("video").paused ? "Video is paused." : "Video is playing.");
+    // --- Start of corrected script ---
 
     // Extract anime ID and episode number from URL
+    // These variables are declared ONCE and used throughout the script.
     const urlParts = window.location.pathname.split('/');
-    const animeId = urlParts[2]; // e.g., yquCdfW4DjcS533oR
+    const animeId = urlParts[2]; // e.g., "yquCdfW4DjcS533oR"
     const episodeNumber = parseInt(urlParts[4], 10); // e.g., 111
 
+    // Update the <h1> title
+    // This line will now correctly use the 'episodeNumber'
+    const titleElement = document.getElementById('nowPlayingTitle');
+    if (titleElement) { // Always a good practice to check if the element exists
+        titleElement.textContent = `Now Playing: Episode ${episodeNumber}`;
+    }
+
+    const videoElement = document.querySelector("video");
     const storageKey = `anime-progress-${animeId}`;
 
     // Save progress every second
@@ -179,6 +176,7 @@
         };
 
         localStorage.setItem(storageKey, JSON.stringify(data));
+        // console.log(`Saved progress for episode ${episodeNumber} at ${currentTime} seconds.`); // Uncomment for debugging
     });
 
     // Optional: Resume from last time
@@ -188,43 +186,47 @@
             const { episode, time } = JSON.parse(saved);
             if (episode === episodeNumber) {
                 videoElement.currentTime = time;
+                // console.log(`Resumed episode ${episode} from ${time} seconds.`); // Uncomment for debugging
             }
         }
     });
-        document.getElementById('nextEpisodeBtn').addEventListener('click', function() {
-            navigateToEpisode(1); // Navigate to next episode
-        });
 
-        document.getElementById('prevEpisodeBtn').addEventListener('click', function() {
-            navigateToEpisode(-1); // Navigate to previous episode
-        });
+    // Event Listeners for navigation buttons
+    document.getElementById('nextEpisodeBtn').addEventListener('click', function() {
+        navigateToEpisode(1); // Navigate to next episode
+    });
 
-        function navigateToEpisode(direction) {
-            const currentUrl = window.location.href;
-            // The regex now specifically targets the structure used in the Flask app
-            const baseUrlPattern = /(https?:\/\/[^\/]+\/anime\/[a-zA-Z0-9]+\/episode\/)(\d+)(\/play)/;
-            const match = currentUrl.match(baseUrlPattern);
+    document.getElementById('prevEpisodeBtn').addEventListener('click', function() {
+        navigateToEpisode(-1); // Navigate to previous episode
+    });
 
-            if (match) {
-                const baseUrlPart1 = match[1]; // e.g., "http://localhost:5000/anime/yquCdfW4DjcS533oR/episode/"
-                const currentEpisodeNumber = parseInt(match[2], 10); // e.g., 73
-                const baseUrlPart2 = match[3]; // e.g., "/play"
+    function navigateToEpisode(direction) {
+        const currentUrl = window.location.href;
+        // The regex now specifically targets the structure used in the Flask app
+        const baseUrlPattern = /(https?:\/\/[^\/]+\/anime\/[a-zA-Z0-9]+\/episode\/)(\d+)(\/play)/;
+        const match = currentUrl.match(baseUrlPattern);
 
-                let targetEpisodeNumber = currentEpisodeNumber + direction;
+        if (match) {
+            const baseUrlPart1 = match[1]; // e.g., "http://localhost:5000/anime/yquCdfW4DjcS533oR/episode/"
+            const currentEpisodeNumber = parseInt(match[2], 10); // e.g., 73
+            const baseUrlPart2 = match[3]; // e.g., "/play"
 
-                // Prevent navigating to episode 0 or negative
-                if (targetEpisodeNumber < 1) {
-                    alert("This is the first episode.");
-                    return;
-                }
+            let targetEpisodeNumber = currentEpisodeNumber + direction;
 
-                const nextUrl = baseUrlPart1 + targetEpisodeNumber + baseUrlPart2;
-                window.location.href = nextUrl;
-            } else {
-                console.warn("Current URL does not match the expected pattern for episode navigation.");
-                alert("Could not determine the next/previous episode. The URL format might be unexpected.");
+            // Prevent navigating to episode 0 or negative
+            if (targetEpisodeNumber < 1) {
+                alert("This is the first episode.");
+                return;
             }
+
+            const nextUrl = baseUrlPart1 + targetEpisodeNumber + baseUrlPart2;
+            window.location.href = nextUrl;
+        } else {
+            console.warn("Current URL does not match the expected pattern for episode navigation.");
+            alert("Could not determine the next/previous episode. The URL format might be unexpected.");
         }
+    }
+    // --- End of corrected script ---
     </script>
 </body>
 </html>
