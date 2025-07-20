@@ -77,7 +77,7 @@ def search():
     shows = data.get("data", {}).get("shows", {}).get("edges", [])
     shows = sorted(shows, key=lambda x: x.get("name", "z"))
     # Limit 10 shows for display
-    shows = shows[:10]
+    # shows = shows[:10]
 
     # Fetch image from OMDb for each show
     for show in shows:
