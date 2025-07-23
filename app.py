@@ -81,21 +81,21 @@ def search():
 
     # Fetch image from OMDb for each show
     for show in shows:
-        title = show.get("name", "")
-        omdb_response = requests.get("https://www.omdbapi.com/", params={
-            "t": title,
-            "apikey": 'bf007c6a'
-        })
-
-        if omdb_response.status_code == 200:
-            omdb_data = omdb_response.json()
-            poster_url = omdb_data.get("Poster")
-            if poster_url and poster_url != "N/A":
-                show["poster"] = poster_url
-            else:
-                show["poster"] = "/static/no-image.png"  # fallback image
-        else:
-            show["poster"] = "/static/no-image.png"
+    #     title = show.get("name", "")
+    #     omdb_response = requests.get("https://www.omdbapi.com/", params={
+    #         "t": title,
+    #         "apikey": 'bf007c6a'
+    #     })
+    #
+    #     if omdb_response.status_code == 200:
+    #         omdb_data = omdb_response.json()
+    #         poster_url = omdb_data.get("Poster")
+    #         if poster_url and poster_url != "N/A":
+    #             show["poster"] = poster_url
+    #         else:
+    #             show["poster"] = "/static/no-image.png"  # fallback image
+    #     else:
+        show["poster"] = "/static/no-image.png"
 
     return render_template("results.html", shows=shows, query=query)
 
