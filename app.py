@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect
 import requests
 import urllib.parse
+import google.generativeai as genai
 
 app = Flask(__name__)
 
@@ -48,11 +49,10 @@ query($showId: String!) {
 def index():
     return render_template('index.html')
 
-@app.route('/search')
-def search():
+def get_shows():
     query = request.args.get('query', '').strip()
     if not query:
-        return render_template('index.html', error="Please enter a search term.")
+        return {"error": "Please enter a search term."}, 400
 
     payload = {
         "query": GRAPHQL_SEARCH_QUERY,
@@ -71,11 +71,25 @@ def search():
 
     response = requests.post(API_URL, headers=HEADERS, json=payload)
     if response.status_code != 200:
-        return f"Error: {response.status_code}"
+        return {"error": f"Error: {response.status_code}"}, response.status_code
 
     data = response.json()
     shows = data.get("data", {}).get("shows", {}).get("edges", [])
     shows = sorted(shows, key=lambda x: x.get("name", "z"))
+
+    return shows, query
+
+
+@app.route('/api/search', methods=['GET'])
+def api_search():
+    shows, _q = get_shows()
+
+    return {"shows": shows}
+
+
+@app.route('/search')
+def search():
+    shows, _q = get_shows()
     # Limit 10 shows for display
     # shows = shows[:10]
 
@@ -97,7 +111,7 @@ def search():
     #     else:
         show["poster"] = "/static/no-image.png"
 
-    return render_template("results.html", shows=shows, query=query)
+    return render_template("results.html", shows=shows, query=_q)
 
 @app.route('/anime/<anime_id>')
 def anime_detail(anime_id):
@@ -268,7 +282,30 @@ def play_episode_online(anime_id, ep_number):
         encoded_url = urllib.parse.quote(usable_urls[0], safe='')
         redirect_url = f"https://allanime.day/player?url={encoded_url}"
         return redirect(redirect_url)
-    return render_template("video_player.html", video_url=selected_source, episode_number=ep_number, player_title= f"Episode {ep_number}")
+    # genai.configure(api_key="AIzaSyBhMZEcbo3P9UQueHwIypZgacfkm3X1ZDs")
+    # model = genai.GenerativeModel(model_name="gemini-2.5-pro")
+    # response = model.generate_content(
+    #     [f"tell me the skip intro time in seconds for dragon ball z ep {ep_number} japanese version with sub if there is no skip time then return 0"])
+
+    return render_template(
+        "video_player.html",
+        video_url=selected_source,
+        episode_number=ep_number,
+        player_title=f"Episode {ep_number}",
+        # skip_intro_time=response.text.strip() or "0"
+        skip_intro_time="0"
+    )
+
+
+@app.route('/anime/<anime_id>/episode/<ep_number>/skip_time_fetch')
+def fetch_skip_time(anime_id, ep_number):
+    genai.configure(api_key="AIzaSyBhMZEcbo3P9UQueHwIypZgacfkm3X1ZDs")
+    model = genai.GenerativeModel(model_name="gemini-2.5-pro")
+    response = model.generate_content(
+        [f"tell me the skip intro time in seconds for dragon ball z ep {ep_number} japanese version with sub if there is no skip time then return 0"]
+    )
+    skip_time = response.text.strip() or "0"
+    return {"skip_time": int(skip_time)}
 
 
 if __name__ == '__main__':

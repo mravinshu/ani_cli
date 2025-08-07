@@ -28,6 +28,7 @@
             border-radius: 12px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.5);
             box-sizing: border-box;
+            position: relative; /* Crucial for positioning the skip button */
         }
         video {
             width: 100%;
@@ -64,7 +65,27 @@
         button:active {
             transform: translateY(0);
         }
-
+        #skipIntroBtn {
+            position: absolute;
+            bottom: 80px; /* Position above native video controls */
+            right: 25px;
+            z-index: 10;
+            padding: 10px 18px;
+            font-size: 1em;
+            background-color: rgba(30, 30, 30, 0.75);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 6px;
+            cursor: pointer;
+            display: none; /* Initially hidden */
+            transition: opacity 0.3s ease, background-color 0.3s ease;
+            max-width: 150px; /* Specific width for this button */
+        }
+        #skipIntroBtn:hover {
+            background-color: rgba(72, 61, 139, 0.9); /* #483d8b with transparency */
+            border-color: white;
+            transform: translateY(-2px);
+        }
         h1 {
             color: #e0e0e0;
             margin-bottom: 20px;
@@ -72,7 +93,6 @@
             text-align: center;
             font-size: 2.5em;
         }
-
         .back-button {
             margin-top: 20px;
             padding: 10px 20px;
@@ -83,52 +103,23 @@
             font-weight: bold;
             transition: background-color 0.3s ease;
         }
-
         .back-button:hover {
             background-color: #777;
         }
-
-        /* Media Queries for Responsiveness */
         @media (max-width: 768px) {
-            h1 {
-                font-size: 2em;
-                margin-bottom: 15px;
-            }
-            .video-container {
-                padding: 15px;
-                margin-bottom: 20px;
-            }
-            .controls {
-                gap: 10px;
-            }
-            button {
-                padding: 10px 20px;
-                font-size: 1em;
-                max-width: 150px;
-            }
-            .back-button {
-                padding: 8px 15px;
-                font-size: 0.9em;
-            }
+            h1 { font-size: 2em; margin-bottom: 15px; }
+            .video-container { padding: 15px; margin-bottom: 20px; }
+            .controls { gap: 10px; }
+            button { padding: 10px 20px; font-size: 1em; max-width: 150px; }
+            #skipIntroBtn { bottom: 70px; right: 20px; padding: 8px 15px; font-size: 0.9em; }
+            .back-button { padding: 8px 15px; font-size: 0.9em; }
         }
-
         @media (max-width: 480px) {
-            h1 {
-                font-size: 1.8em;
-                margin-bottom: 10px;
-            }
-            .video-container {
-                padding: 10px;
-                margin-bottom: 15px;
-            }
-            .controls {
-                flex-direction: column; /* Stack buttons vertically */
-                gap: 10px;
-            }
-            button {
-                width: 100%; /* Full width for stacked buttons */
-                max-width: none; /* Remove max-width restriction */
-            }
+            h1 { font-size: 1.8em; margin-bottom: 10px; }
+            .video-container { padding: 10px; margin-bottom: 15px; }
+            .controls { flex-direction: column; gap: 10px; }
+            button { width: 100%; max-width: none; }
+            #skipIntroBtn { width: auto; max-width: 130px; bottom: 60px; right: 15px; }
         }
     </style>
 </head>
@@ -138,6 +129,7 @@
         <video src="{{ video_url }}" controls autoplay>
             Your browser does not support the video tag.
         </video>
+        <button id="skipIntroBtn">Skip Intro &raquo;</button>
         <div class="controls">
             <button id="prevEpisodeBtn">Previous Episode</button>
             <button id="nextEpisodeBtn">Next Episode</button>
@@ -146,26 +138,54 @@
     <a href="javascript:history.back()" class="back-button">Go Back</a>
 
     <script>
-        console.log(document.querySelector("video").paused ? "Video is paused." : "Video is playing.");
-    // --- Start of corrected script ---
-
-    // Extract anime ID and episode number from URL
-    // These variables are declared ONCE and used throughout the script.
     const urlParts = window.location.pathname.split('/');
-    const animeId = urlParts[2]; // e.g., "yquCdfW4DjcS533oR"
-    const episodeNumber = parseInt(urlParts[4], 10); // e.g., 111
+    const animeId = urlParts[2];
+    const episodeNumber = parseInt(urlParts[4], 10);
 
-    // Update the <h1> title
-    // This line will now correctly use the 'episodeNumber'
     const titleElement = document.getElementById('nowPlayingTitle');
-    if (titleElement) { // Always a good practice to check if the element exists
+    if (titleElement) {
         titleElement.textContent = `Now Playing: Episode ${episodeNumber}`;
     }
 
     const videoElement = document.querySelector("video");
     const storageKey = `anime-progress-${animeId}`;
+    const skipIntroBtn = document.getElementById('skipIntroBtn');
 
-    // Save progress every second
+    // --- Start of new/modified script section ---
+    let skipIntroTime = null; // Initialize to null
+    const DEFAULT_SKIP_TIME = 85; // Fallback value
+
+    // Function to fetch skip time from the API
+    async function fetchSkipTime() {
+        // Construct the API URL based on your provided pattern and existing variables.
+        // Assumes an endpoint like: /anime/your-anime-id/episode/1/skip_time_fetch
+        const apiUrl = `/anime/${animeId}/episode/${episodeNumber}/skip_time_fetch`;
+
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`API responded with status: ${response.status}`);
+            }
+            const data = await response.json();
+            // Ensure the API returns a valid number for 'skip_time'
+            if (data && typeof data.skip_time === 'number') {
+                skipIntroTime = data.skip_time;
+                console.log(`✅ Skip time set from API: ${skipIntroTime}s`);
+            } else {
+                // If API response is malformed, use the default
+                skipIntroTime = DEFAULT_SKIP_TIME;
+                console.log(`⚠️ API response invalid, using default skip time: ${skipIntroTime}s`);
+            }
+        } catch (error) {
+            console.error('❌ Failed to fetch skip time:', error);
+            // On error (e.g., 404, network failure), use the default
+            skipIntroTime = DEFAULT_SKIP_TIME;
+            console.log(`Using default skip time due to error: ${skipIntroTime}s`);
+        }
+    }
+    // --- End of new/modified script section ---
+
+
     videoElement.addEventListener("timeupdate", function () {
         const currentTime = Math.floor(videoElement.currentTime);
 
@@ -174,46 +194,56 @@
             time: currentTime,
             updatedAt: Date.now()
         };
-
         localStorage.setItem(storageKey, JSON.stringify(data));
-        // console.log(`Saved progress for episode ${episodeNumber} at ${currentTime} seconds.`); // Uncomment for debugging
+
+        // --- Logic to show/hide the skip intro button ---
+        // Only show button if we have a valid skip time
+        if (skipIntroTime && currentTime > 5 && currentTime < skipIntroTime) {
+            skipIntroBtn.style.display = 'block';
+        } else {
+            skipIntroBtn.style.display = 'none';
+        }
     });
 
-    // Optional: Resume from last time
+    skipIntroBtn.addEventListener('click', function() {
+        if (skipIntroTime) {
+            videoElement.currentTime = skipIntroTime;
+            skipIntroBtn.style.display = 'none'; // Hide immediately
+        }
+    });
+
     window.addEventListener("load", function () {
+        // Fetch the skip time as soon as the page loads
+        fetchSkipTime();
+
         const saved = localStorage.getItem(storageKey);
         if (saved) {
             const { episode, time } = JSON.parse(saved);
             if (episode === episodeNumber) {
                 videoElement.currentTime = time;
-                // console.log(`Resumed episode ${episode} from ${time} seconds.`); // Uncomment for debugging
             }
         }
     });
 
-    // Event Listeners for navigation buttons
     document.getElementById('nextEpisodeBtn').addEventListener('click', function() {
-        navigateToEpisode(1); // Navigate to next episode
+        navigateToEpisode(1);
     });
 
     document.getElementById('prevEpisodeBtn').addEventListener('click', function() {
-        navigateToEpisode(-1); // Navigate to previous episode
+        navigateToEpisode(-1);
     });
 
     function navigateToEpisode(direction) {
         const currentUrl = window.location.href;
-        // The regex now specifically targets the structure used in the Flask app
-        const baseUrlPattern = /(https?:\/\/[^\/]+\/anime\/[a-zA-Z0-9]+\/episode\/)(\d+)(\/play)/;
+        const baseUrlPattern = /(https?:\/\/[^\/]+\/anime\/[a-zA-Z0-9-]+\/episode\/)(\d+)(\/play)/;
         const match = currentUrl.match(baseUrlPattern);
 
         if (match) {
-            const baseUrlPart1 = match[1]; // e.g., "http://localhost:5000/anime/yquCdfW4DjcS533oR/episode/"
-            const currentEpisodeNumber = parseInt(match[2], 10); // e.g., 73
-            const baseUrlPart2 = match[3]; // e.g., "/play"
-
+            const baseUrlPart1 = match[1];
+            const currentEpisodeNumber = parseInt(match[2], 10);
+            const baseUrlPart2 = match[3];
             let targetEpisodeNumber = currentEpisodeNumber + direction;
 
-            // Prevent navigating to episode 0 or negative
             if (targetEpisodeNumber < 1) {
                 alert("This is the first episode.");
                 return;
@@ -226,7 +256,6 @@
             alert("Could not determine the next/previous episode. The URL format might be unexpected.");
         }
     }
-    // --- End of corrected script ---
     </script>
 </body>
 </html>
