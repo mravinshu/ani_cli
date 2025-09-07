@@ -299,13 +299,13 @@ def play_episode_online(anime_id, ep_number):
 
 @app.route('/anime/<anime_id>/episode/<ep_number>/skip_time_fetch')
 def fetch_skip_time(anime_id, ep_number):
-    genai.configure(api_key="AIzaSyBhMZEcbo3P9UQueHwIypZgacfkm3X1ZDs")
-    model = genai.GenerativeModel(model_name="gemini-2.5-pro")
-    response = model.generate_content(
-        [f"tell me the skip intro time in seconds for dragon ball z ep {ep_number} japanese version with sub if there is no skip time then return 0"]
-    )
-    skip_time = response.text.strip() or "0"
-    return {"skip_time": int(skip_time)}
+    # genai.configure(api_key="AIzaSyBhMZEcbo3P9UQueHwIypZgacfkm3X1ZDs")
+    # model = genai.GenerativeModel(model_name="gemini-2.5-pro")
+    # response = model.generate_content(
+    #     [f"tell me the skip intro time in seconds for dragon ball z ep {ep_number} japanese version with sub if there is no skip time then return 0"]
+    # )
+    # skip_time = response.text.strip() or "0"
+    return {"skip_time": int(0)}
 
 
 if __name__ == '__main__':
