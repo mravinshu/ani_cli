@@ -1,275 +1,88 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Playing - {{ player_title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Share API Example</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            justify-content: center;
-            min-height: 100vh;
+            height: 100vh;
             margin: 0;
-            background-color: #1a1a1a; /* Dark background */
-            color: #f0f0f0; /* Light text */
-            padding: 20px; /* Add padding for overall responsiveness */
-            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            flex-direction: column;
+            gap: 20px;
         }
-        .video-container {
-            width: 100%;
-            max-width: 960px;
-            text-align: center;
-            margin-bottom: 30px;
-            background-color: #2c2c2c;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-            box-sizing: border-box;
-            position: relative; /* Crucial for positioning the skip button */
-        }
-        video {
-            width: 100%;
-            display: block;
-            border-radius: 10px;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
-            background-color: black;
-            height: auto; /* Allow video height to adjust proportionally */
-        }
-        .controls {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
-        }
-        button {
-            padding: 12px 25px;
-            font-size: 1.1em;
-            cursor: pointer;
-            background-color: #6a5acd;
+
+        .share-button {
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
             color: white;
+            background-color: #007bff;
             border: none;
-            border-radius: 6px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            font-weight: bold;
-            flex-grow: 1; /* Allow buttons to grow and fill space */
-            max-width: 180px; /* Limit button width */
-        }
-        button:hover {
-            background-color: #483d8b;
-            transform: translateY(-2px);
-        }
-        button:active {
-            transform: translateY(0);
-        }
-        #skipIntroBtn {
-            position: absolute;
-            bottom: 80px; /* Position above native video controls */
-            right: 25px;
-            z-index: 10;
-            padding: 10px 18px;
-            font-size: 1em;
-            background-color: rgba(30, 30, 30, 0.75);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            display: none; /* Initially hidden */
-            transition: opacity 0.3s ease, background-color 0.3s ease;
-            max-width: 150px; /* Specific width for this button */
-        }
-        #skipIntroBtn:hover {
-            background-color: rgba(72, 61, 139, 0.9); /* #483d8b with transparency */
-            border-color: white;
-            transform: translateY(-2px);
-        }
-        h1 {
-            color: #e0e0e0;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            text-align: center;
-            font-size: 2.5em;
-        }
-        .back-button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #555;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
             transition: background-color 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .back-button:hover {
-            background-color: #777;
+
+        .share-button:hover {
+            background-color: #0056b3;
         }
-        @media (max-width: 768px) {
-            h1 { font-size: 2em; margin-bottom: 15px; }
-            .video-container { padding: 15px; margin-bottom: 20px; }
-            .controls { gap: 10px; }
-            button { padding: 10px 20px; font-size: 1em; max-width: 150px; }
-            #skipIntroBtn { bottom: 70px; right: 20px; padding: 8px 15px; font-size: 0.9em; }
-            .back-button { padding: 8px 15px; font-size: 0.9em; }
-        }
-        @media (max-width: 480px) {
-            h1 { font-size: 1.8em; margin-bottom: 10px; }
-            .video-container { padding: 10px; margin-bottom: 15px; }
-            .controls { flex-direction: column; gap: 10px; }
-            button { width: 100%; max-width: none; }
-            #skipIntroBtn { width: auto; max-width: 130px; bottom: 60px; right: 15px; }
+
+        #status-message {
+            font-size: 16px;
+            color: #555;
         }
     </style>
 </head>
 <body>
-    <h1 id="nowPlayingTitle">Now Playing</h1>
-    <div class="video-container">
-        <video src="{{ video_url }}" controls autoplay>
-            Your browser does not support the video tag.
-        </video>
-        <button id="skipIntroBtn">Skip Intro &raquo;</button>
-        <div class="controls">
-            <button id="prevEpisodeBtn">Previous Episode</button>
-            <button id="nextEpisodeBtn">Next Episode</button>
-            <button id="copyLinkBtn">Copy Link</button> <!-- New button -->
-        </div>
-    </div>
-    <a href="javascript:history.back()" class="back-button">Go Back</a>
+
+    <button id="shareButton" class="share-button">🔗 Share this Page</button>
+    <p id="status-message"></p>
 
     <script>
-    const urlParts = window.location.pathname.split('/');
-    const animeId = urlParts[2];
-    const episodeNumber = parseInt(urlParts[4], 10);
+        // --- 1. Select the elements ---
+        const shareButton = document.getElementById('shareButton');
+        const statusMessage = document.getElementById('status-message');
 
-    const titleElement = document.getElementById('nowPlayingTitle');
-    if (titleElement) {
-        titleElement.textContent = `Now Playing: Episode ${episodeNumber}`;
-    }
-
-    const videoElement = document.querySelector("video");
-    const storageKey = `anime-progress-${animeId}`;
-    const skipIntroBtn = document.getElementById('skipIntroBtn');
-
-    // --- Start of new/modified script section ---
-    let skipIntroTime = null; // Initialize to null
-    const DEFAULT_SKIP_TIME = 85; // Fallback value
-
-    // Function to fetch skip time from the API
-    async function fetchSkipTime() {
-        // Construct the API URL based on your provided pattern and existing variables.
-        // Assumes an endpoint like: /anime/your-anime-id/episode/1/skip_time_fetch
-        const apiUrl = `/anime/${animeId}/episode/${episodeNumber}/skip_time_fetch`;
-
-        try {
-            const response = await fetch(apiUrl);
-            if (!response.ok) {
-                throw new Error(`API responded with status: ${response.status}`);
-            }
-            const data = await response.json();
-            // Ensure the API returns a valid number for 'skip_time'
-            if (data && typeof data.skip_time === 'number') {
-                skipIntroTime = data.skip_time;
-                console.log(`✅ Skip time set from API: ${skipIntroTime}s`);
-            } else {
-                // If API response is malformed, use the default
-                skipIntroTime = DEFAULT_SKIP_TIME;
-                console.log(`⚠️ API response invalid, using default skip time: ${skipIntroTime}s`);
-            }
-        } catch (error) {
-            console.error('❌ Failed to fetch skip time:', error);
-            // On error (e.g., 404, network failure), use the default
-            skipIntroTime = DEFAULT_SKIP_TIME;
-            console.log(`Using default skip time due to error: ${skipIntroTime}s`);
-        }
-    }
-    // --- End of new/modified script section ---
-
-
-    videoElement.addEventListener("timeupdate", function () {
-        const currentTime = Math.floor(videoElement.currentTime);
-
-        const data = {
-            episode: episodeNumber,
-            time: currentTime,
-            updatedAt: Date.now()
+        // --- 2. Define the content to share ---
+        const shareData = {
+            title: 'Check out this awesome website!',
+            text: 'I found this cool page and thought you might like it.',
+            url: 'https://www.example.com' // You can change this to any URL you want to share
         };
-        localStorage.setItem(storageKey, JSON.stringify(data));
 
-        // --- Logic to show/hide the skip intro button ---
-        // Only show button if we have a valid skip time
-        if (skipIntroTime && currentTime > 5 && currentTime < skipIntroTime) {
-            skipIntroBtn.style.display = 'block';
-        } else {
-            skipIntroBtn.style.display = 'none';
-        }
-    });
-
-    skipIntroBtn.addEventListener('click', function() {
-        if (skipIntroTime) {
-            videoElement.currentTime = skipIntroTime;
-            skipIntroBtn.style.display = 'none'; // Hide immediately
-        }
-    });
-
-    window.addEventListener("load", function () {
-        // Fetch the skip time as soon as the page loads
-        fetchSkipTime();
-
-        const saved = localStorage.getItem(storageKey);
-        if (saved) {
-            const { episode, time } = JSON.parse(saved);
-            if (episode === episodeNumber) {
-                videoElement.currentTime = time;
+        // --- 3. Add click event listener to the button ---
+        shareButton.addEventListener('click', async () => {
+            // Check if the Web Share API is supported by the browser
+            if (navigator.share) {
+                try {
+                    // Trigger the native share dialog
+                    await navigator.share(shareData);
+                    statusMessage.textContent = 'Shared successfully!';
+                    console.log('Shared successfully');
+                } catch (err) {
+                    statusMessage.textContent = `Error: ${err.message}`;
+                    console.error('Error sharing:', err);
+                }
+            } else {
+                // --- Fallback for unsupported browsers ---
+                // You can't trigger the share dialog, so let's copy the URL to the clipboard
+                console.log('Web Share API not supported, falling back to clipboard.');
+                try {
+                    await navigator.clipboard.writeText(shareData.url);
+                    statusMessage.textContent = 'Share not supported. URL copied to clipboard!';
+                } catch (err) {
+                    statusMessage.textContent = 'Failed to copy URL to clipboard.';
+                    console.error('Failed to copy:', err);
+                }
             }
-        }
-    });
-
-    document.getElementById('nextEpisodeBtn').addEventListener('click', function() {
-        navigateToEpisode(1);
-    });
-
-    document.getElementById('prevEpisodeBtn').addEventListener('click', function() {
-        navigateToEpisode(-1);
-    });
-
-    function navigateToEpisode(direction) {
-        const currentUrl = window.location.href;
-        const baseUrlPattern = /(https?:\/\/[^\/]+\/anime\/[a-zA-Z0-9-]+\/episode\/)(\d+)(\/play)/;
-        const match = currentUrl.match(baseUrlPattern);
-
-        if (match) {
-            const baseUrlPart1 = match[1];
-            const currentEpisodeNumber = parseInt(match[2], 10);
-            const baseUrlPart2 = match[3];
-            let targetEpisodeNumber = currentEpisodeNumber + direction;
-
-            if (targetEpisodeNumber < 1) {
-                alert("This is the first episode.");
-                return;
-            }
-
-            const nextUrl = baseUrlPart1 + targetEpisodeNumber + baseUrlPart2;
-            window.location.href = nextUrl;
-        } else {
-            console.warn("Current URL does not match the expected pattern for episode navigation.");
-            alert("Could not determine the next/previous episode. The URL format might be unexpected.");
-        }
-    }
-document.getElementById('copyLinkBtn').addEventListener('click', function() {
-    const videoElement = document.querySelector("video");
-    const videoUrl = videoElement.src; // Get the video file URL
-
-    navigator.clipboard.writeText(videoUrl).then(function() {
-        alert('Video link copied to clipboard!');
-    }).catch(function(err) {
-        console.error('Could not copy video link: ', err);
-        alert('Failed to copy the video link.');
-    });
-});
-
-
+        });
     </script>
 </body>
 </html>
