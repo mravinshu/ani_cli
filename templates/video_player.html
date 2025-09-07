@@ -277,7 +277,7 @@ document.getElementById('shareBtn').addEventListener('click', async function() {
         try {
             await navigator.share({
                 title: 'Share',
-                text: 'Ep {{ episodeNumber }} {{ animeName }}',
+                text: 'Ep ' + episodeNumber + ' of ' + animeName,
                 url: videoUrl
             });
             console.log('Shared successfully');
