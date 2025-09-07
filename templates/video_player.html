@@ -124,7 +124,9 @@
     </style>
 </head>
 <body>
-    <h1 id="nowPlayingTitle">Now Playing</h1>
+
+<h1 id="nowPlayingTitle">Now Playing</h1>
+<p id="animeName" style="color: #ccc; margin-bottom: 20px; font-size: 1.2em; text-align: center;"></p>
     <div class="video-container">
         <video src="{{ video_url }}" controls autoplay>
             Your browser does not support the video tag.
@@ -134,18 +136,26 @@
             <button id="prevEpisodeBtn">Previous Episode</button>
             <button id="nextEpisodeBtn">Next Episode</button>
             <button id="shareBtn">Share</button> <!-- New button -->
+            <button id="downloadBtn">Download</button>
         </div>
     </div>
     <a href="javascript:history.back()" class="back-button">Go Back</a>
 
     <script>
+
     const urlParts = window.location.pathname.split('/');
     const animeId = urlParts[2];
-    const episodeNumber = parseInt(urlParts[4], 10);
+    const episodeNumber = parseInt(urlParts[5], 10);
+
+    const animeName = "{{ anime_name }}"; // This will be replaced by your backend template engine
+    const animeNameElement = document.getElementById('animeName');
+    if (animeNameElement) {
+        animeNameElement.textContent = `Now Playing: Episode ${episodeNumber}`;
+    }
 
     const titleElement = document.getElementById('nowPlayingTitle');
     if (titleElement) {
-        titleElement.textContent = `Now Playing: Episode ${episodeNumber}`;
+        titleElement.textContent = animeName;
     }
 
     const videoElement = document.querySelector("video");
@@ -288,7 +298,21 @@ document.getElementById('shareBtn').addEventListener('click', async function() {
 });
 
 
+document.getElementById('downloadBtn').addEventListener('click', function() {
+    const videoElement = document.querySelector("video");
+    const videoUrl = videoElement.src;
 
+    // Suggested filename
+    const suggestedFileName = `${animeName}-Episode-${episodeNumber}.mp4`;
+
+    // Create a temporary link and trigger download
+    const a = document.createElement('a');
+    a.href = videoUrl;
+    a.download = suggestedFileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+});
 
     </script>
 </body>
