@@ -246,7 +246,7 @@
 
     function navigateToEpisode(direction) {
         const currentUrl = window.location.href;
-        const baseUrlPattern = /(https?:\/\/[^\/]+\/anime\/[a-zA-Z0-9-]+\/episode\/)(\d+)(\/play)/;
+        const baseUrlPattern = /https?:\/\/[^\/]+\/anime\/[a-zA-Z0-9-]+\/[a-zA-Z0-9]+\/episode\/(\d+)\/play/;
         const match = currentUrl.match(baseUrlPattern);
 
         if (match) {
