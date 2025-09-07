@@ -133,6 +133,7 @@
         <div class="controls">
             <button id="prevEpisodeBtn">Previous Episode</button>
             <button id="nextEpisodeBtn">Next Episode</button>
+            <button id="copyLinkBtn">Copy Link</button> <!-- New button -->
         </div>
     </div>
     <a href="javascript:history.back()" class="back-button">Go Back</a>
@@ -256,6 +257,19 @@
             alert("Could not determine the next/previous episode. The URL format might be unexpected.");
         }
     }
+document.getElementById('copyLinkBtn').addEventListener('click', function() {
+    const videoElement = document.querySelector("video");
+    const videoUrl = videoElement.src; // Get the video file URL
+
+    navigator.clipboard.writeText(videoUrl).then(function() {
+        alert('Video link copied to clipboard!');
+    }).catch(function(err) {
+        console.error('Could not copy video link: ', err);
+        alert('Failed to copy the video link.');
+    });
+});
+
+
     </script>
 </body>
 </html>
