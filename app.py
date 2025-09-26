@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect
 import requests
 import urllib.parse
-import google.generativeai as genai
 
 app = Flask(__name__)
 
@@ -360,31 +359,14 @@ def play_episode_online_with_name(anime_name, anime_id, ep_number):
         encoded_url = urllib.parse.quote(usable_urls[0], safe='')
         redirect_url = f"https://allanime.day/player?url={encoded_url}"
         return redirect(redirect_url)
-    # genai.configure(api_key="AIzaSyBhMZEcbo3P9UQueHwIypZgacfkm3X1ZDs")
-    # model = genai.GenerativeModel(model_name="gemini-2.5-pro")
-    # response = model.generate_content(
-    #     [f"tell me the skip intro time in seconds for dragon ball z ep {ep_number} japanese version with sub if there is no skip time then return 0"])
 
     return render_template(
         "video_player.html",
         video_url=selected_source,
         episode_number=ep_number,
         player_title=f"{anime_name}",
-        # skip_intro_time=response.text.strip() or "0"
-        skip_intro_time="0",
         anime_name=anime_name
     )
-
-
-@app.route('/anime/<anime_id>/episode/<ep_number>/skip_time_fetch')
-def fetch_skip_time(anime_id, ep_number):
-    # genai.configure(api_key="")
-    # model = genai.GenerativeModel(model_name="gemini-2.5-pro")
-    # response = model.generate_content(
-    #     [f"tell me the skip intro time in seconds for dragon ball z ep {ep_number} japanese version with sub if there is no skip time then return 0"]
-    # )
-    # skip_time = response.text.strip() or "0"
-    return {"skip_time": int(0)}
 
 
 if __name__ == '__main__':
