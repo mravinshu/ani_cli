@@ -166,37 +166,6 @@
     let skipIntroTime = null; // Initialize to null
     const DEFAULT_SKIP_TIME = 85; // Fallback value
 
-    // Function to fetch skip time from the API
-    async function fetchSkipTime() {
-        // Construct the API URL based on your provided pattern and existing variables.
-        // Assumes an endpoint like: /anime/your-anime-id/episode/1/skip_time_fetch
-        const apiUrl = `/anime/${animeId}/episode/${episodeNumber}/skip_time_fetch`;
-
-        try {
-            const response = await fetch(apiUrl);
-            if (!response.ok) {
-                throw new Error(`API responded with status: ${response.status}`);
-            }
-            const data = await response.json();
-            // Ensure the API returns a valid number for 'skip_time'
-            if (data && typeof data.skip_time === 'number') {
-                skipIntroTime = data.skip_time;
-                console.log(`✅ Skip time set from API: ${skipIntroTime}s`);
-            } else {
-                // If API response is malformed, use the default
-                skipIntroTime = DEFAULT_SKIP_TIME;
-                console.log(`⚠️ API response invalid, using default skip time: ${skipIntroTime}s`);
-            }
-        } catch (error) {
-            console.error('❌ Failed to fetch skip time:', error);
-            // On error (e.g., 404, network failure), use the default
-            skipIntroTime = DEFAULT_SKIP_TIME;
-            console.log(`Using default skip time due to error: ${skipIntroTime}s`);
-        }
-    }
-    // --- End of new/modified script section ---
-
-
     videoElement.addEventListener("timeupdate", function () {
         const currentTime = Math.floor(videoElement.currentTime);
 
@@ -224,9 +193,6 @@
     });
 
     window.addEventListener("load", function () {
-        // Fetch the skip time as soon as the page loads
-        fetchSkipTime();
-
         const saved = localStorage.getItem(storageKey);
         if (saved) {
             const { episode, time } = JSON.parse(saved);
@@ -246,20 +212,22 @@
 
     function navigateToEpisode(direction) {
         const currentUrl = window.location.href;
-        const baseUrlPattern = /https?:\/\/[^\/]+\/anime\/[a-zA-Z0-9-]+\/[a-zA-Z0-9]+\/episode\/(\d+)\/play/;
+        const baseUrlPattern = /(https?:\/\/[^\/]+\/anime\/[a-zA-Z0-9-]+\/[a-zA-Z0-9]+\/episode\/)\d+\/play/;
         const match = currentUrl.match(baseUrlPattern);
+        const baseUrlPart1 = match[1];
+        const numUrlPattern = /episode\/(\d+)\/play/;
+        const numMatch = currentUrl.match(numUrlPattern);
 
-        if (match) {
-            const baseUrlPart1 = match[1];
-            const currentEpisodeNumber = parseInt(match[2], 10);
-            const baseUrlPart2 = match[3];
+        if (numMatch) {
+            const currentEpisodeNumber = parseInt(numMatch[1], 10);
+
+            const baseUrlPart2 = '/play';
             let targetEpisodeNumber = currentEpisodeNumber + direction;
 
             if (targetEpisodeNumber < 1) {
                 alert("This is the first episode.");
                 return;
             }
-
             const nextUrl = baseUrlPart1 + targetEpisodeNumber + baseUrlPart2;
             window.location.href = nextUrl;
         } else {
