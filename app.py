@@ -218,7 +218,7 @@ def episode_stream(anime_id, ep_number):
 
 
 @app.route('/anime/<anime_id>/episode/<ep_number>/play')
-def play_episode_online(anime_id, ep_number):
+def play_episode_online(anime_id, ep_number, lang='sub'):
     query = """
     query ($showId: String!, $translationType: VaildTranslationTypeEnumType!, $episodeString: String!) {
       episode(
@@ -295,8 +295,9 @@ def play_episode_online(anime_id, ep_number):
         skip_intro_time="0"
     )
 
-@app.route('/anime/<anime_name>/<anime_id>/episode/<ep_number>/play')
-def play_episode_online_with_name(anime_name, anime_id, ep_number):
+
+
+def play_episode_online_with_name(anime_name, anime_id, ep_number, lang='sub'):
     query = """
     query ($showId: String!, $translationType: VaildTranslationTypeEnumType!, $episodeString: String!) {
       episode(
@@ -318,6 +319,9 @@ def play_episode_online_with_name(anime_name, anime_id, ep_number):
             "episodeString": ep_number
         }
     }
+
+    if payload['variables']['translationType'] == 'sub' and lang == 'dub':
+        payload['variables']['translationType'] = 'dub'
 
     response = requests.post(API_URL, headers=HEADERS, json=payload)
     if response.status_code != 200:
@@ -367,6 +371,15 @@ def play_episode_online_with_name(anime_name, anime_id, ep_number):
         player_title=f"{anime_name}",
         anime_name=anime_name
     )
+
+
+@app.route('/anime/<anime_name>/<anime_id>/episode/<ep_number>/play/dub')
+def play_dub(anime_name, anime_id, ep_number):
+    return play_episode_online_with_name(anime_name, anime_id, ep_number, lang='dub')
+
+@app.route('/anime/<anime_name>/<anime_id>/episode/<ep_number>/play')
+def play_sub(anime_name, anime_id, ep_number):
+    return play_episode_online_with_name(anime_name, anime_id, ep_number)
 
 
 if __name__ == '__main__':
