@@ -135,7 +135,9 @@
         <div class="controls">
             <button id="prevEpisodeBtn">Previous Episode</button>
             <button id="nextEpisodeBtn">Next Episode</button>
-            <button id="shareBtn">Share</button> <!-- New button -->
+            <button id="shareBtn">Share</button>
+
+            <button id="subDubToggleBtn" style="min-width: 150px;">Switching...</button>
             <button id="downloadBtn">Download</button>
         </div>
     </div>
@@ -210,31 +212,43 @@
         navigateToEpisode(-1);
     });
 
+    /**
+     * Navigates to the next or previous episode while preserving the /dub suffix if it exists.
+     */
     function navigateToEpisode(direction) {
         const currentUrl = window.location.href;
-        const baseUrlPattern = /(https?:\/\/[^\/]+\/anime\/[a-zA-Z0-9-]+\/[a-zA-Z0-9]+\/episode\/)\d+\/play/;
-        const match = currentUrl.match(baseUrlPattern);
-        const baseUrlPart1 = match[1];
-        const numUrlPattern = /episode\/(\d+)\/play/;
-        const numMatch = currentUrl.match(numUrlPattern);
 
-        if (numMatch) {
-            const currentEpisodeNumber = parseInt(numMatch[1], 10);
+        // Use a regex to find the episode number and the base URL path before it.
+        // This regex captures:
+        // 1. The full URL path up to 'episode/'
+        // 2. The episode number
+        // 3. The rest of the path, including '/play' and optional '/dub'
+        const urlRegex = /(.*\/episode\/)(\d+)(\/play.*)/;
+        const match = currentUrl.match(urlRegex);
 
-            const baseUrlPart2 = '/play';
-            let targetEpisodeNumber = currentEpisodeNumber + direction;
-
-            if (targetEpisodeNumber < 1) {
-                alert("This is the first episode.");
-                return;
-            }
-            const nextUrl = baseUrlPart1 + targetEpisodeNumber + baseUrlPart2;
-            window.location.href = nextUrl;
-        } else {
+        if (!match) {
             console.warn("Current URL does not match the expected pattern for episode navigation.");
             alert("Could not determine the next/previous episode. The URL format might be unexpected.");
+            return;
         }
+
+        // Extract the parts:
+        const baseUrlPrefix = match[1]; // e.g., http://127.0.0.1:10000/anime/DBZ/Kihf6x2iJyMa4crSd/episode/
+        const currentEpisodeNumber = parseInt(match[2], 10); // e.g., 287
+        const urlSuffix = match[3]; // e.g., /play or /play/dub
+
+        let targetEpisodeNumber = currentEpisodeNumber + direction;
+
+        if (targetEpisodeNumber < 1) {
+            alert("This is the first episode.");
+            return;
+        }
+
+        // Reconstruct the URL, guaranteeing the dub status is maintained in urlSuffix
+        const nextUrl = baseUrlPrefix + targetEpisodeNumber + urlSuffix;
+        window.location.href = nextUrl;
     }
+
 
 document.getElementById('shareBtn').addEventListener('click', async function() {
     const videoElement = document.querySelector("video");
@@ -281,6 +295,56 @@ document.getElementById('downloadBtn').addEventListener('click', function() {
     a.click();
     document.body.removeChild(a);
 });
+
+// --- Sub/Dub Toggle Logic START (REVISED) ---
+const subDubToggleBtn = document.getElementById('subDubToggleBtn');
+const currentUrlPath = window.location.href;
+
+// 1. Determine Initial State: Check if the current URL ends with "/dub"
+let isDubbed = currentUrlPath.endsWith('/dub');
+
+// 2. Function to update the button text
+function updateToggleText() {
+    if (isDubbed) {
+        subDubToggleBtn.textContent = 'Switch to Sub';
+    } else {
+        subDubToggleBtn.textContent = 'Switch to Dub';
+    }
+}
+
+// Set initial text
+updateToggleText();
+
+// 3. Handle Toggle Button Click
+subDubToggleBtn.addEventListener('click', function() {
+    let newUrl;
+
+    // Disable button to prevent double-click navigation
+    subDubToggleBtn.disabled = true;
+
+    if (isDubbed) {
+        // Currently Dubbed, switch to Sub: Remove trailing '/dub'
+        // Use slice only if we confirm it ends with '/dub'
+        if (currentUrlPath.endsWith('/dub')) {
+            newUrl = currentUrlPath.slice(0, -4);
+        } else {
+            newUrl = currentUrlPath; // Should not happen if isDubbed is true
+        }
+    } else {
+        // Currently Subbed, switch to Dub: Append '/dub'
+        newUrl = currentUrlPath + '/dub';
+    }
+
+    // Navigate to the new URL
+    if (newUrl && newUrl !== currentUrlPath) {
+        window.location.href = newUrl;
+    } else {
+        // Re-enable button if no navigation happens
+        subDubToggleBtn.disabled = false;
+    }
+});
+
+// --- Sub/Dub Toggle Logic END ---
 
     </script>
 </body>
