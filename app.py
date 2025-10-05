@@ -197,7 +197,6 @@ def fetch_usable_urls(data):
     if not usable_urls:
         return []
 
-    print("usable_urls  ", usable_urls)
 
     def priority(link):
         if not link:
