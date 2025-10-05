@@ -1,10 +1,6 @@
-from flask import Flask, render_template, request, redirect
 import requests
 import urllib.parse
-from flask_cors import CORS
-
-app = Flask(__name__)
-CORS(app)
+from flask_app import *
 
 API_URL = "https://api.allanime.day/api"
 
@@ -367,5 +363,3 @@ def play_sub(anime_name, anime_id, ep_number):
     return play_episode_online_with_name(anime_name, anime_id, ep_number)
 
 
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=10000)
