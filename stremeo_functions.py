@@ -26,6 +26,10 @@ def manifest():
 
 @app.route("/catalog/<type_>/<id>.json")
 def catalog(type_, id):
+    print("/catalog/<type_>/<id>.json", type_, id)
+    print("args", request.args)
+    print("json", request.json)
+
     query = request.args.get("search", "")
     shows, _q = get_shows()  # you already have get_shows()
 
@@ -42,6 +46,9 @@ def catalog(type_, id):
 
 @app.route("/meta/<type_>/<id>.json")
 def meta(type_, id):
+    print("/meta/<type_>/<id>.json", type_, id)
+    print("args", request.args)
+    print("json", request.json)
     anime_id = id.replace("allanime:", "")
     query = """
     query ($showId: String!) {
@@ -78,6 +85,9 @@ def meta(type_, id):
 
 @app.route("/stream/<type_>/<id>.json")
 def stream(type_, id):
+    print("/stream/<type_>/<id>.json", type_, id)
+    print("args", request.args)
+    print("json", request.json)
     # id looks like "allanime:<anime_id>:<episode_number>"
     parts = id.split(":")
     anime_id = parts[1]
